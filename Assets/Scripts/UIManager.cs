@@ -21,8 +21,14 @@ public class UIManager : MonoBehaviour
         GUIStyle style = new GUIStyle(GUI.skin.label);
         style.fontSize = 24;
 
-        GUI.Label(new Rect(10, 10, 350, 50), "Hearts left (Double Jump): " + doubleJumpItemsLeft.ToString(), style);
-        GUI.Label(new Rect(10, 40, 350, 50), "Spinning coins left (Dash): " + dashItemsLeft.ToString(), style);
-        GUI.Label(new Rect(10, 70, 350, 50), "Shining coins left (Ball mode): " + ballModeItemsLeft.ToString(), style);
-    }
+        GUI.Label(new Rect(10, 60, 350, 50), "Hearts left (Double Jump): " + doubleJumpItemsLeft.ToString(), style);
+        GUI.Label(new Rect(10, 90, 350, 50), "Spinning coins left (Dash): " + dashItemsLeft.ToString(), style);
+        GUI.Label(new Rect(10, 120, 350, 50), "Shining coins left (Ball mode): " + ballModeItemsLeft.ToString(), style);
+
+        // Reset button               
+        if (GUI.Button(new Rect(10, 10, 500, 30), "RESET GAME", style))
+        {
+            SaveDataGame.instance.ResetGame();
+        }
+    }    
 }

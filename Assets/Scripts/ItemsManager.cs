@@ -1,5 +1,7 @@
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using static ItemController;
 
 public class ItemsManager : MonoBehaviour
 {
@@ -15,6 +17,24 @@ public class ItemsManager : MonoBehaviour
 
     private GameObject player;
     private PlayerExtrasTracker playerExtrasTracker;
+
+    public class SaveDataItems
+    {
+        public int hearts;
+        public int spinningCoins;
+        public int shiningCoins;
+
+        public SaveDataItems()
+        {
+        }
+
+        public SaveDataItems(int hearts, int spinningCoins, int shiningCoins)
+        {
+            this.hearts = hearts;
+            this.spinningCoins = spinningCoins;
+            this.shiningCoins = shiningCoins;
+        }
+    }
 
     private void Awake()
     {
@@ -44,5 +64,24 @@ public class ItemsManager : MonoBehaviour
             playerExtrasTracker.CanEnterBallMode = true;
             playerExtrasTracker.CanDropBombs = true;
         }
-    }  
+    }
+
+    public JObject Serialize()
+    {
+        SaveDataItems saveDataItems = new SaveDataItems(_items[ItemType.Heart.ToString()], _items[ItemType.SpinningCoin.ToString()],
+                                                        _items[ItemType.ShiningCoin.ToString()]);
+        string jsonString = JsonUtility.ToJson(saveDataItems);
+        JObject returnObject = JObject.Parse(jsonString);
+        return returnObject;
+    }
+
+    public void DeSerialize(string jsonString)
+    {
+        SaveDataItems saveDataItems = JsonUtility.FromJson<SaveDataItems>(jsonString);
+        _items[ItemType.Heart.ToString()] = saveDataItems.hearts;
+        _items[ItemType.SpinningCoin.ToString()] = saveDataItems.spinningCoins;
+        _items[ItemType.ShiningCoin.ToString()] = saveDataItems.shiningCoins;
+        Start();
+        SetTracker();
+    }
 }

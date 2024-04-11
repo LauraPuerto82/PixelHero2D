@@ -1,4 +1,7 @@
+using Newtonsoft.Json.Linq;
 using UnityEngine;
+using static ItemController;
+using static PlayerController;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded, isFlippedInX;
     private float ballModeCounter;
     [SerializeField] private float waitForBallMode;
+    private Vector2 initialPos;
     // Player animation
     private Animator animatorStandingPlayer;
     private Animator animatorBallPlayer;
@@ -48,12 +52,33 @@ public class PlayerController : MonoBehaviour
 
     // Player Extras
     private PlayerExtrasTracker playerExtrasTracker;
-    
+
+    public bool IsGrounded { get => isGrounded; set => isGrounded = value; }   
+
+    public class SaveDataPlayerController
+    {
+        public Vector2 initialPos;
+        public Vector2 finalPos;
+        public bool isFlippedInX;
+
+        public SaveDataPlayerController()
+        {
+
+        }
+
+        public SaveDataPlayerController(Vector2 initialPos, Vector2 finalPos, bool isFlippedInX)
+        {
+            this.initialPos = initialPos;
+            this.finalPos = finalPos;
+            this.isFlippedInX = isFlippedInX;
+        }
+    }
 
     private void Awake()
     {
         myRigidbody = GetComponent<Rigidbody2D>();     
         myTransform = GetComponent<Transform>();
+        initialPos = myTransform.position;
         playerExtrasTracker = GetComponent<PlayerExtrasTracker>();
     }
 
@@ -129,12 +154,12 @@ public class PlayerController : MonoBehaviour
     {
         float overlapCircleRadio = 0.2f;
         //float raycastDistance = 0.2f;
-        isGrounded = Physics2D.OverlapCircle(checkGroundPoint.position, overlapCircleRadio, selectedLayerMask);
+        IsGrounded = Physics2D.OverlapCircle(checkGroundPoint.position, overlapCircleRadio, selectedLayerMask);
         //isGrounded = Physics2D.Raycast(checkGroundPoint.position, Vector2.down, raycastDistance, selectedLayerMask);                
 
-        if (Input.GetButtonDown("Jump") && (isGrounded || (canDoubleJump && playerExtrasTracker.CanDoubleJump)))
+        if (Input.GetButtonDown("Jump") && (IsGrounded || (canDoubleJump && playerExtrasTracker.CanDoubleJump)))
         {
-            if (isGrounded)
+            if (IsGrounded)
             {
                 canDoubleJump = true;
                 Instantiate(dustJump, transformDustPoint.position, Quaternion.identity);
@@ -149,7 +174,7 @@ public class PlayerController : MonoBehaviour
             myRigidbody.velocity = new Vector2(myRigidbody.velocity.x, jumpForce);
         }
        
-        animatorStandingPlayer.SetBool(IdIsGrounded, isGrounded);
+        animatorStandingPlayer.SetBool(IdIsGrounded, IsGrounded);
     }
     
     private void CheckAndSetDirection()
@@ -184,7 +209,7 @@ public class PlayerController : MonoBehaviour
         if(myRigidbody.velocity.x != 0 && isIdle)
         {
             isIdle = false;
-            if (isGrounded)
+            if (IsGrounded)
                 Instantiate(dustJump, transformDustPoint.position, Quaternion.identity);
         }
         if (myRigidbody.velocity.x == 0)
@@ -215,5 +240,28 @@ public class PlayerController : MonoBehaviour
         afterImage.color = afterImageColor;
         Destroy(afterImage.gameObject, afterImageLifetime);
         afterImageCounter = afterImageTimeBetween;
+    }
+
+    public JObject Serialize()
+    {        
+        SaveDataPlayerController saveDataPlayerController = new SaveDataPlayerController(initialPos, transform.position, isFlippedInX);
+        string jsonString = JsonUtility.ToJson(saveDataPlayerController);
+        JObject returnObject = JObject.Parse(jsonString);
+        return returnObject;
+    }
+
+    public void DeSerialize(string jsonString)
+    {
+        SaveDataPlayerController saveDataPlayerController = JsonUtility.FromJson<SaveDataPlayerController>(jsonString);
+        this.transform.position = saveDataPlayerController.finalPos;
+        this.isFlippedInX = saveDataPlayerController.isFlippedInX;
+        if (isFlippedInX)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);            
+        }
+        else 
+        {
+            transform.localScale = Vector3.one;            
+        }
     }
 }
