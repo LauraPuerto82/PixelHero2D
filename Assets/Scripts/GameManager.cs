@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
 
     public void LevelPassed()
     {
-        levelPassedPanel?.SetActive(true);
+        levelPassedPanel?.SetActive(true);        
     }
     
     public void GameOver()
